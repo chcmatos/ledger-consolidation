@@ -1,0 +1,68 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  pg_ledger:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ledger
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ledger -h localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  pg_consolidation:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: consolidation
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d consolidation -h localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ledger_api:
+    build:
+      context: .
+      dockerfile: src/Ledger/Ledger.Api/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__LedgerDb: Host=pg_ledger;Port=5432;Database=ledger;Username=postgres;Password=postgres
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Username: guest
+      RabbitMq__Password: guest
+    ports:
+      - "5101:8080"
+    depends_on:
+      rabbitmq:
+          condition: service_started
+      pg_ledger:
+          condition: service_healthy
+
+  consolidation_api:
+    build:
+      context: .
+      dockerfile: src/Consolidation/Consolidation.Api/Dockerfile
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__ConsolidationDb: Host=pg_consolidation;Port=5432;Database=consolidation;Username=postgres;Password=postgres
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Username: guest
+      RabbitMq__Password: guest
+    ports:
+      - "5201:8080"
+    depends_on:
+      rabbitmq:
+          condition: service_started
+      pg_consolidation:
+          condition: service_healthy

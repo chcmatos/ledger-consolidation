@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\\Ledger.Domain\\Ledger.Domain.csproj" />
+    <ProjectReference Include="..\\..\\Shared\\Shared.Contracts\\Shared.Contracts.csproj" />
+    <ProjectReference Include="..\\..\\Shared\\Shared.BuildingBlocks\\Shared.BuildingBlocks.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>    
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Ledger.UnitTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

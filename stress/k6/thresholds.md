@@ -1,0 +1,2 @@
+- http_req_failed < 5%
+- track p95 latency as an evolution

@@ -1,0 +1,70 @@
+@startuml
+title Ledger Service
+
+hide footbox
+autonumber
+
+actor "Comerciante" as Client
+
+box "API Layer" #aabbffff
+  participant "TransactionsController" as LedgerApi
+end box
+
+box "Application Layer" #FFEEAA
+    participant "CreateTransactionUseCase" as AppCreateTx
+end box
+
+box "Infrastructure Layer" #DDDDFF
+  participant "TransactionRepository" as TxRepo
+  participant "OutboxStore (MassTransit)" as OutboxStore
+  participant "OutboxDispatcher (MassTransit)" as OutboxDispatcher  
+end box
+
+box "Infrastructure" #FFDDDD
+    database "PostgreSQL\nLedger DB" as PgLedger
+    queue "RabbitMQ" as RabbitMQ
+end box
+
+
+== Criar Lançamento ==
+Client -> LedgerApi : POST /transactions\n{type, amount, date, description}
+LedgerApi -> AppCreateTx : Execute(command)
+
+note right of AppCreateTx
+  Application:
+  - valida regras de negócio
+  - orquestra persistência
+  - registra evento de domínio/integracao
+end note
+
+AppCreateTx -> TxRepo : Add(transaction)
+TxRepo -> PgLedger : INSERT transactions(...)
+PgLedger --> TxRepo : OK
+
+AppCreateTx -> OutboxStore : Enqueue(TransactionPosted event)
+OutboxStore -> PgLedger : INSERT outbox_messages(eventId, payload,...)
+PgLedger --> OutboxStore : OK
+
+AppCreateTx --> LedgerApi : Result(transactionId)
+LedgerApi --> Client : 201 Created\n{transactionId}
+
+== Publicação assíncrona via Outbox (resiliência) ==
+note over OutboxDispatcher
+  Dispatcher roda em background no Ledger Service.
+  Ele lê o outbox no Postgres e publica no RabbitMQ.
+  Se o broker estiver indisponível, ele retenta depois.
+end note
+
+OutboxDispatcher -> PgLedger : SELECT outbox_messages WHERE dispatched=false LIMIT N
+PgLedger --> OutboxDispatcher : pending events
+
+OutboxDispatcher -> RabbitMQ : Publish TransactionPosted(eventId,...)
+alt Broker indisponível
+  RabbitMQ --> OutboxDispatcher : error/timeout
+  OutboxDispatcher -> PgLedger : (mantém dispatched=false)\nretry posterior
+else Publicado
+  RabbitMQ --> OutboxDispatcher : ACK
+  OutboxDispatcher -> PgLedger : UPDATE outbox_messages SET dispatched=true, dispatchedAt=...
+end
+
+@enduml

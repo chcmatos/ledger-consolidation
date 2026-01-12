@@ -1,0 +1,90 @@
+@startuml
+title Consolidation Service
+
+hide footbox
+autonumber
+
+actor "Comerciante" as Client
+
+box "API Layer" #aabbffff
+  participant "DailyBalanceController" as ConsApi
+ 
+end box
+
+box "Application Layer" #FFEEAA
+  participant "GetDailyBalanceQuery" as AppGetDaily
+  participant "ApplyTransactionPostedHandler" as AppApplyEvent
+end box
+
+box "Infrastructure Layer" #DDDDFF
+  participant "DailyBalanceReadRepository" as ReadRepo
+  participant "MassTransit Consumer\nTransactionPostedConsumer" as Consumer
+  participant "InboxStore (MassTransit)" as InboxStore
+  participant "DailyBalanceProjectionRepository" as ProjectionRepo
+end box
+
+box "Infrastructure" #FFDDDD
+  queue "RabbitMQ\nQueue: transactions-posted" as Q
+  queue "RabbitMQ\nDLQ" as DLQ
+end box
+
+database "PostgreSQL\nConsolidation DB" as PgConsolid
+
+
+== Consulta do Consolidado ==
+Client -> ConsApi : GET /daily-balance?date=YYYY-MM-DD
+ConsApi -> AppGetDaily : Execute(query)
+AppGetDaily -> ReadRepo : GetByDate(date)
+ReadRepo -> PgConsolid : SELECT daily_balances WHERE date=...
+PgConsolid --> ReadRepo : balance
+ReadRepo --> AppGetDaily : balance
+AppGetDaily --> ConsApi : result
+ConsApi --> Client : 200 OK (saldo consolidado)
+
+== Atualização do Read Model (consumo assíncrono) ==
+Q -> Consumer : Deliver TransactionPosted(eventId, date, amount, type)
+
+Consumer -> InboxStore : CheckProcessed(eventId)
+alt Já processado (redelivery/duplicata)
+  InboxStore --> Consumer : true
+  Consumer -> Q : Ack (ignorar)
+else Novo evento
+  InboxStore --> Consumer : false
+
+  Consumer -> AppApplyEvent : Handle(event)
+  note right of AppApplyEvent
+    Application:
+    - aplica regra de consolidação (delta)
+    - orquestra persistência transacional
+  end note
+
+  AppApplyEvent -> PgConsolid : BEGIN TX
+  AppApplyEvent -> ProjectionRepo : UpsertDailyBalance(date, delta)
+  ProjectionRepo -> PgConsolid : UPSERT daily_balances (date, amount=amount+delta)
+  PgConsolid --> ProjectionRepo : OK
+
+  AppApplyEvent -> InboxStore : MarkProcessed(eventId)
+  InboxStore -> PgConsolid : INSERT inbox_state(eventId, processedAt,...)
+  PgConsolid --> InboxStore : OK
+
+  AppApplyEvent -> PgConsolid : COMMIT
+  AppApplyEvent --> Consumer : OK
+  Consumer -> Q : Ack
+end
+
+== Falhas e DLQ (Dead Letter Queue) ==
+Q -> Consumer : Deliver (novamente)
+Consumer -> AppApplyEvent : Handle(event)
+alt Erro não-transiente / poison message
+  Consumer -> Q : Nack (retry)
+  note right of Q
+    Após N tentativas,
+    o broker encaminha para DLQ 
+    automáticamente.
+  end note
+  Q -> DLQ : Move message
+else Erro transiente
+  Consumer -> Q : Nack (retry)
+end
+
+@enduml

@@ -1,0 +1,84 @@
+@startuml
+title Arquitetura Event-Driven (RabbitMQ + MassTransit + PostgreSQL + Outbox/Inbox)
+
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam wrapWidth 220
+skinparam maxMessageSize 200
+
+actor "Comerciante" as User
+
+node "Docker Host" {
+  node "RabbitMQ" as RabbitMQ
+
+  database "PostgreSQL\n(Ledger DB)" as PgLedger
+  database "PostgreSQL\n(Consolidation DB)" as PgConsolid
+
+  component "Ledger Service\nASP.NET Core Web API\nMassTransit (Bus)\nOutbox (DB)\nInbox/" as Ledger
+
+  component "Daily Consolidation Service\n.NET Worker Service\nMassTransit (Consumer)\nInbox (DB)\nProjeção (Read Model)" as Consolidation
+}
+
+' API / User interactions
+User --> Ledger : HTTP\nPOST /transactions\nGET /transactions
+
+' Ledger persistence + Outbox
+Ledger --> PgLedger : Write Transactions\n+ Save Outbox Message\n(Atomic Tx)
+
+note right of Ledger
+  Ledger é "source of truth" (livro razão).
+  Outbox garante publicação confiável:
+  - Persistir lançamento + evento na mesma transação
+  - Publicar depois via dispatcher
+end note
+
+note right of PgLedger
+  Tabelas típicas:
+  - transactions
+  - outbox_messages (MassTransit)
+  - inbox_state (opcional p/ idempotência)
+end note
+
+' =========================
+' Outbox dispatcher -> Broker
+' =========================
+Ledger --> RabbitMQ : Publish Event\nTransactionPosted\n(via Outbox Dispatcher)
+
+note on link #lightyellow
+  MassTransit Outbox:
+  1) grava evento no banco (outbox)
+  2) dispatcher publica no RabbitMQ
+  3) marca como despachado
+end note
+
+' Consumer side (Inbox) -> Read Model
+RabbitMQ --> Consolidation : Consume Event\nTransactionPosted\n(Ack após persistência)
+
+Consolidation --> PgConsolid : Upsert Daily Balance\n(Read Model)\n+ Save Inbox State
+
+note right of Consolidation
+  Inbox garante processamento idempotente:
+  - evita duplicidade em retries/redelivery
+  - ack somente após persistir projeção + inbox
+end note
+
+note right of PgConsolid
+  Tabelas típicas:
+  - daily_balances (read model)
+  - inbox_state (MassTransit)
+end note
+
+' =========================
+' Report access
+' =========================
+User --> Consolidation : HTTP\nGET /daily-balance?date=YYYY-MM-DD\nGET /daily-balance?from=&to=
+
+note bottom
+  Propriedades da arquitetura:
+  - Resiliência: Ledger não depende do Consolidation.
+  - Escalabilidade: Consolidation escala horizontal (consumidores).
+  - Consistência: eventual consistency no saldo diário.
+  - Confiabilidade: Outbox + Inbox + retries/DLQ no broker.
+end note
+
+@enduml
