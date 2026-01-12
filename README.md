@@ -1,4 +1,6 @@
-# Ledger & Consolidation – Arquitetura Event-Driven (.NET 9)
+# Ledger & Consolidation 
+### Arquitetura Event-Driven (.NET 9)
+---
 
 ## 1. Visão Geral do Projeto
 
@@ -188,11 +190,11 @@ dotnet --version
 
 Caso não esteja, instale-o conforme o sistema operacional.
 
-Windows: https://learn.microsoft.com/pt-br/dotnet/core/install/windows
-Linux: https://learn.microsoft.com/pt-br/dotnet/core/install/linux
-MacOS: https://learn.microsoft.com/pt-br/dotnet/core/install/macos
+- **Windows**: https://learn.microsoft.com/pt-br/dotnet/core/install/windows
+- **Linux**: https://learn.microsoft.com/pt-br/dotnet/core/install/linux
+- **MacOS**: https://learn.microsoft.com/pt-br/dotnet/core/install/macos
 
-Após a instalação, reinicie o terminal e verifique novamente a versão do .NET SDK.
+> Após a instalação, reinicie o terminal e verifique novamente a versão do .NET SDK.
 
 ## 6. Compilação do Projeto
 
@@ -211,7 +213,9 @@ docker-compose up -d --build
 
 Serviços:
 - Ledger API: http://localhost:5101
+    - Swagger: http://localhost:5101/swagger/index.html _(Veja seção 8)_
 - Consolidation API: http://localhost:5201
+    - Swagger: http://localhost:5201/swagger/index.html _(Veja seção 8)_
 - RabbitMQ UI: http://localhost:15672
 
 ### 7.1 Parar os Serviços
@@ -233,6 +237,8 @@ Caso queira parar, remover o conteiner e os volumes associados:
 ```bash
 docker-compose down -v --rmi all --remove-orphans  
 ```
+
+> Nota: Caso algum container esteja em uso por outro processo, o mesmo não será removido.
 
 ### 7.2 Logs dos Serviços
 
@@ -271,6 +277,13 @@ após iniciar os serviços com o Docker Compose.
 ## 9. Autenticação JWT
 
 As APIs estão protegidas com JWT Bearer Token.
+
+Como estamos em um ambiente controlado e este projeto é apenas uma demonstração,
+as configurações de autenticação são simplificadas e estão mantidas no `appsettings.json` das camadas de `API` do `Consolidation` e do `Ledger` respectivamente.
+
+> Para um ambiente de produção, recomendo utilizar um provedor de identidade dedicado (ex: IdentityServer, Auth0, Azure AD, etc).
+
+> Ou no mínimo, armazenar as configurações sensíveis em um cofre de segredos (ex: Azure Key Vault, AWS Secrets Manager, HashiCorp Vault, etc).
 
 ### 9.1 Obter Token JWT
 Para obter um token JWT válido, faça uma requisição POST para o endpoint de autenticação:
