@@ -526,5 +526,5 @@ dotnet ef migrations add [MigrationName] \
 ---
 
 Desenvolvido por @chcmatos
-- [GitHub](@chcmatos)
+- [GitHub](https://github.com/chcmatos)
 - [LinkedIn](https://www.linkedin.com/in/chcmatos)
