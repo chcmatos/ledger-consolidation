@@ -1,6 +1,6 @@
-using Consolidation.Application.EventHandlers;
 using Consolidation.Application.Ports;
 using Consolidation.Infrastructure.Auth;
+using Consolidation.Infrastructure.EventHandlers;
 using Consolidation.Infrastructure.Messaging;
 using Consolidation.Infrastructure.Persistence;
 using Consolidation.Infrastructure.Repositories;
@@ -21,8 +21,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDailyBalanceProjectionRepository, DailyBalanceProjectionRepository>();
         services.AddScoped<IUnitOfWork>(sp => new EfUnitOfWork(sp.GetRequiredService<ConsolidationDbContext>()));
         services.AddScoped<IAuthService, AuthService>();
-
-        services.AddScoped<ApplyTransactionPostedHandler>();
+        services.AddScoped<IApplyTransactionPostedHandler, ApplyTransactionPostedHandler>();
 
         services.AddConsolidationMessaging(cfg);
 

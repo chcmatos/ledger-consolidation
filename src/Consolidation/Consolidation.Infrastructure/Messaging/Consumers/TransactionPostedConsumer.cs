@@ -1,10 +1,10 @@
-using Consolidation.Application.EventHandlers;
+using Consolidation.Application.Ports;
 using MassTransit;
 using Shared.Contracts.Events;
 
 namespace Consolidation.Infrastructure.Messaging.Consumers;
 
-public sealed class TransactionPostedConsumer(ApplyTransactionPostedHandler handler) : IConsumer<TransactionPostedV1>
+internal sealed class TransactionPostedConsumer(IApplyTransactionPostedHandler handler) : IConsumer<TransactionPostedV1>
 {
     public Task Consume(ConsumeContext<TransactionPostedV1> context) =>
         handler.HandleAsync(context.Message, context.CancellationToken);

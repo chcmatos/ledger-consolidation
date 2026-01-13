@@ -1,4 +1,4 @@
-using Consolidation.Application.EventHandlers;
+using Consolidation.Infrastructure.EventHandlers;
 using Consolidation.Application.Ports;
 using FluentAssertions;
 using Shared.Contracts.Events;

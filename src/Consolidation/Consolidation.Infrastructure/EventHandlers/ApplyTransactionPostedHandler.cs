@@ -1,17 +1,18 @@
+using System.Diagnostics.CodeAnalysis;
 using Consolidation.Application.Ports;
 using Consolidation.Domain.Rules;
 using Shared.Contracts.Events;
 
-namespace Consolidation.Application.EventHandlers;
+namespace Consolidation.Infrastructure.EventHandlers;
 
 /// <summary>
 /// Application handler that applies the TransactionPosted integration event into the read model.
 /// </summary>
-public sealed class ApplyTransactionPostedHandler(
+internal sealed class ApplyTransactionPostedHandler(
     IDailyBalanceProjectionRepository projectionRepo,
-    IUnitOfWork uow)
+    IUnitOfWork uow) : IApplyTransactionPostedHandler
 {
-    public async Task HandleAsync(TransactionPostedV1 evt, CancellationToken ct)
+    public async Task HandleAsync([NotNull] TransactionPostedV1 evt, [NotNull] CancellationToken ct)
     {
         if (ConsolidationRules.IsCredit(evt.Type))
         {

@@ -5,6 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\\..\\src\\Consolidation\\Consolidation.Domain\\Consolidation.Domain.csproj" />
     <ProjectReference Include="..\\..\\src\\Consolidation\\Consolidation.Application\\Consolidation.Application.csproj" />
+    <ProjectReference Include="..\\..\\src\\Consolidation\\Consolidation.Infrastructure\\Consolidation.Infrastructure.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
