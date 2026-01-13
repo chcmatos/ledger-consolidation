@@ -4,6 +4,7 @@
   <ItemGroup>
     <ProjectReference Include="..\\Consolidation.Application\\Consolidation.Application.csproj" />
     <ProjectReference Include="..\\Consolidation.Domain\\Consolidation.Domain.csproj" />
+    <ProjectReference Include="..\\..\\Shared\\Shared.Auth\\Shared.Auth.csproj" />
     <ProjectReference Include="..\\..\\Shared\\Shared.Contracts\\Shared.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>

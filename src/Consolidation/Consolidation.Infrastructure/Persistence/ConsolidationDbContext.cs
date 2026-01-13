@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Consolidation.Infrastructure.Persistence;
 
-public sealed class ConsolidationDbContext(DbContextOptions<ConsolidationDbContext> options) : DbContext(options)
+internal sealed class ConsolidationDbContext(DbContextOptions<ConsolidationDbContext> options) : DbContext(options)
 {
     public DbSet<DailyBalance> DailyBalances => Set<DailyBalance>();
 

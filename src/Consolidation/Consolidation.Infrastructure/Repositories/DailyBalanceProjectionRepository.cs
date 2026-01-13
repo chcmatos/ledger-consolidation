@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Consolidation.Infrastructure.Repositories;
 
-public sealed class DailyBalanceProjectionRepository(ConsolidationDbContext db) : IDailyBalanceProjectionRepository
+internal sealed class DailyBalanceProjectionRepository(ConsolidationDbContext db) : IDailyBalanceProjectionRepository
 {
     public async Task ApplyCreditAsync(DateOnly date, decimal amount, CancellationToken ct)
     {

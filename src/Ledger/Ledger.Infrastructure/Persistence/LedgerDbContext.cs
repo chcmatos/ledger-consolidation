@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ledger.Infrastructure.Persistence;
 
-public sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) : DbContext(options)
+internal sealed class LedgerDbContext(DbContextOptions<LedgerDbContext> options) : DbContext(options)
 {
     public DbSet<Transaction> Transactions => Set<Transaction>();
 

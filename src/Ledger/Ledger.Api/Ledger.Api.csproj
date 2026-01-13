@@ -5,7 +5,6 @@
     <ProjectReference Include="..\\Ledger.Application\\Ledger.Application.csproj" />
     <ProjectReference Include="..\\Ledger.Infrastructure\\Ledger.Infrastructure.csproj" />
     <ProjectReference Include="..\\..\\Shared\\Shared.BuildingBlocks\\Shared.BuildingBlocks.csproj" />
-    <ProjectReference Include="..\\..\\Shared\\Shared.Auth\\Shared.Auth.csproj" />
     <ProjectReference Include="..\\..\\Shared\\Shared.Contracts\\Shared.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>

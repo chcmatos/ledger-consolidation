@@ -6,6 +6,6 @@ namespace Shared.Auth.Contracts;
 /// Login request for issuing a JWT token.
 /// </summary>
 public sealed record LoginRequest(
-    [Required] string Username,
-    [Required] string Password
+    [Required(ErrorMessage = "Username is required")] string Username,
+    [Required(ErrorMessage = "Password is required")] string Password
 );

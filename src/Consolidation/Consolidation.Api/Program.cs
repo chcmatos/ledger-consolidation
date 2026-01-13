@@ -1,8 +1,5 @@
 using Consolidation.Application.DependencyInjection;
 using Consolidation.Infrastructure.DependencyInjection;
-using Consolidation.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using Shared.BuildingBlocks.Resilience;
 using Shared.Auth.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,18 +25,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-Retry.With(
-    action: () =>
-    {
-        using var scope = app.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ConsolidationDbContext>();
-        db.Database.Migrate();
-    },
-    maxAttempts: 15,
-    delay: TimeSpan.FromSeconds(2),
-    onRetry: (attempt, ex) =>
-    {
-        app.Logger.LogWarning(ex, "Consolidation DB not ready. Retry {Attempt}/15.", attempt);
-    });
+app.ApplyDatabaseMigration();
 
 app.Run();

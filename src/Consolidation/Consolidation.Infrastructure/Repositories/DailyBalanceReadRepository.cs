@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Consolidation.Infrastructure.Repositories;
 
-public sealed class DailyBalanceReadRepository(ConsolidationDbContext db) : IDailyBalanceReadRepository
+internal sealed class DailyBalanceReadRepository(ConsolidationDbContext db) : IDailyBalanceReadRepository
 {
     public Task<DailyBalance?> GetByDateAsync(DateOnly date, CancellationToken ct) =>
         db.DailyBalances.AsNoTracking().FirstOrDefaultAsync(x => x.BusinessDate == date, ct);

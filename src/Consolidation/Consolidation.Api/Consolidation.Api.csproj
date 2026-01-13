@@ -5,7 +5,6 @@
     <ProjectReference Include="..\\Consolidation.Application\\Consolidation.Application.csproj" />
     <ProjectReference Include="..\\Consolidation.Infrastructure\\Consolidation.Infrastructure.csproj" />
     <ProjectReference Include="..\\..\\Shared\\Shared.BuildingBlocks\\Shared.BuildingBlocks.csproj" />
-    <ProjectReference Include="..\\..\\Shared\\Shared.Auth\\Shared.Auth.csproj" />
     <ProjectReference Include="..\\..\\Shared\\Shared.Contracts\\Shared.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>

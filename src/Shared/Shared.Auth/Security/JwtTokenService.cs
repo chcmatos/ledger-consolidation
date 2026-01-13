@@ -14,7 +14,7 @@ public interface IJwtTokenService
     string CreateToken(string username);
 }
 
-sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
+internal sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
 {
     private readonly JwtOptions _jwt = options.Value;
 

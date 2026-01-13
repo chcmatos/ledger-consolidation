@@ -1,4 +1,5 @@
 using Ledger.Application.Ports;
+using Ledger.Infrastructure.Auth;
 using Ledger.Infrastructure.Messaging;
 using Ledger.Infrastructure.Persistence;
 using Ledger.Infrastructure.Repositories;
@@ -19,6 +20,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ITransactionRepository, TransactionRepository>();
         services.AddScoped<IUnitOfWork>(sp => new EfUnitOfWork(sp.GetRequiredService<LedgerDbContext>()));
+        services.AddScoped<IAuthService, AuthService>();
 
         services.AddLedgerMessaging(cfg);
 

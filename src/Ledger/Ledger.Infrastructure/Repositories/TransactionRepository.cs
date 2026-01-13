@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Ledger.Infrastructure.Repositories;
 
-public sealed class TransactionRepository(LedgerDbContext db) : ITransactionRepository
+internal sealed class TransactionRepository(LedgerDbContext db) : ITransactionRepository
 {
     public async Task AddAsync(Transaction transaction, CancellationToken ct)
     {

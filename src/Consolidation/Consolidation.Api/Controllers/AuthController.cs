@@ -1,14 +1,13 @@
+using Consolidation.Application.Ports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Shared.Auth.Contracts;
-using Shared.Auth.Security;
 
 namespace Consolidation.Api.Controllers;
 
 [ApiController]
 [Route("auth")]
-public sealed class AuthController(IOptions<JwtOptions> options, IJwtTokenService tokenService) : ControllerBase
+public sealed class AuthController(IAuthService auth) : ControllerBase
 {
     /// <summary>
     /// Issues a JWT token for API access (demo credentials from appsettings).
@@ -17,16 +16,13 @@ public sealed class AuthController(IOptions<JwtOptions> options, IJwtTokenServic
     [AllowAnonymous]
     public ActionResult<LoginResponse> Token([FromBody] LoginRequest request)
     {
-        var jwt = options.Value;
-
-        var ok = jwt.Users.Any(u =>
-            string.Equals(u.Username, request.Username, StringComparison.Ordinal) &&
-            string.Equals(u.Password, request.Password, StringComparison.Ordinal));
-
-        if (!ok)
+        try
+        {
+            return Ok(auth.auth(request));   
+        } 
+        catch (UnauthorizedAccessException)
+        {
             return Unauthorized();
-
-        var token = tokenService.CreateToken(request.Username);
-        return Ok(new LoginResponse(token, jwt.ExpirationMinutes * 60));
+        }
     }
 }
